@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++.exe build active file",
+			"command": "C:/msys64/mingw64/bin/g++.exe",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-o",
+				"${workspaceFolder}/build/source.exe", 
+				"${workspaceFolder}/source/source.cpp",
+				"${workspaceFolder}/source/glad.c",
+				"${workspaceFolder}/source/std_image.c",
+				"-I",
+				"${workspaceFolder}/include",
+				
+				"-l",
+				"glfw3",
+				"-l",
+				"opengl32",
+			],
+			"options": {
+				"cwd": "C:/msys64/mingw64/bin"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: C:/msys64/mingw64/bin/g++.exe"
+		}
+	]
+}
