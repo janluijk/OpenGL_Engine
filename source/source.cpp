@@ -1,19 +1,15 @@
 // Standard classes
 #include <iostream>
-
 // Self-made classes
 #include <shader.h>
 #include <camera.h>
-
 // Very useful classes
-#include <glad/glad.h> // include glad to get all the required OpenGL headers
+#include <glad/glad.h> 
 #include <GLFW/glfw3.h>
-
-// Not required
+// Not totally necessary
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include <stb_image.h>
 
 // Functions declaration
@@ -21,8 +17,9 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+unsigned int loadTexture(char const* path);
 
-/*--------------------------GLOBAL_VARIABLES--------------------------*/#pragma region
+/*--------------------------GLOBAL_VARIABLES-----------------------*/#pragma region
 // Window and viewport sizes
 const unsigned int SCR_WIDTH   = 1920;
 const unsigned int SCR_HEIGHT  = 1080;   
@@ -46,7 +43,7 @@ bool firstMouse = true;
 
 int main()
 {
-    /*--------------------------INITIALIZING--------------------------*/ #pragma region
+    /*-----------------------INITIALIZING--------------------------*/ #pragma region
     // GLFW
     glfwInit();
 
@@ -87,42 +84,39 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
     #pragma endregion
-    /*--------------------------SHADER_DATA---------------------------*/ #pragma region
+    /*-----------------------SHADER_DATA---------------------------*/ #pragma region
     float vertices[] = 
     {
-    // Pos                  Normal vector
-    -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f, 
-     0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f, 
-    -0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,  
+    // Pos                  Normal vector           Texture coord
+    -0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,     0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,    0.0f,  0.0f, -1.0f,     1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,     1.0f,  1.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f,  0.0f, -1.0f,     0.0f,  1.0f,
 
-    -0.5f, -0.5f,  0.5f,    0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,    0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f,  0.0f, 1.0f,
-    
+    -0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,     0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,    0.0f,  0.0f,  1.0f,     1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,     1.0f,  1.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f,  0.0f,  1.0f,     0.0f,  1.0f,
 
-    -0.5f,  0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,    1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,    1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,    -1.0f,  0.0f,  0.0f,    0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,    -1.0f,  0.0f,  0.0f,    0.0f,  0.0f,
 
+    0.5f,  0.5f,  0.5f,     1.0f,  0.0f,  0.0f,     1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,     1.0f,  0.0f,  0.0f,     1.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,     1.0f,  0.0f,  0.0f,     0.0f,  1.0f,
+    0.5f, -0.5f,  0.5f,     1.0f,  0.0f,  0.0f,     0.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,    1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,    1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,    1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,    1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,     0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,     1.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,     1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,     0.0f,  0.0f,
 
-
-    -0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,    0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, -1.0f,  0.0f,
-
-    -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,     0.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f,     1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,     1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f,  1.0f,  0.0f,     0.0f,  0.0f,
     };
 
     unsigned int indices[] = 
@@ -160,7 +154,7 @@ int main()
     };
     
     #pragma endregion
-    /*--------------------------BUFFER_BINDING------------------------*/ #pragma region
+    /*-----------------------BUFFER_BINDING------------------------*/ #pragma region
     
     // CUBE
     unsigned int cubeVAO, cubeVBO, cubeEBO;
@@ -175,10 +169,12 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     // LIGHT
@@ -190,7 +186,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
 
@@ -211,13 +207,21 @@ int main()
     glEnableVertexAttribArray(0);
 
     #pragma endregion
-    /*--------------------------TEXTURE_BINDING------------------------*/ #pragma region
-    
-    
+    /*-----------------------TEXTURE_BINDING-----------------------*/ #pragma region
+    const char path[] = {
+        "textures/box.png"
+    };
+    unsigned int diffuseMap = loadTexture(path);
+
+    const char path2[] = {
+        "textures/box_specular.png"
+    };
+    unsigned int specularMap = loadTexture(path2);
     #pragma endregion
-    /*--------------------------PRECOMPUTATION------------------------*/ #pragma region  
-    
-    
+    /*-----------------------PRECOMPUTATION------------------------*/ #pragma region  
+    cubeShader.use(); 
+    cubeShader.setInt("material.diffuse", 0);
+    cubeShader.setInt("material.specular", 1);
     
     #pragma endregion
     
@@ -226,13 +230,13 @@ int main()
         // Calls the callback functions
         processInput(window);
 
-        /*--------------------------BUFFER_CLEARING--------------------------*/ #pragma region
-        glClearColor(0.015, 0.101, 0.486, 1.0f); // Color of sky
+        /*--------------------BUFFER_CLEARING-----------------------*/ #pragma region
+        glClearColor(0.015, 0.051, 0.206, 1.0f); // Color of sky
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         #pragma endregion
-        /*--------------------------CALCULATION------------------------------*/  #pragma region
+        /*--------------------CALCULATION---------------------------*/  #pragma region
         float gl_time = (float)glfwGetTime();
         
         glm::mat4 model = glm::mat4(1.0f);
@@ -243,15 +247,21 @@ int main()
        
 
         // Cube
-        /*--------------------------PRE-UNIFORM------------------------------*/  #pragma region
+        /*---------------------PRE-UNIFORM--------------------------*/  #pragma region
         cubeShader.use();
         #pragma endregion       
-        /*--------------------------UNIFORMS---------------------------------*/  #pragma region
+        /*---------------------UNIFORMS-----------------------------*/  #pragma region
         cubeShader.setMat4("projection"         , projection        );
         cubeShader.setMat4("view"               , view              );
         cubeShader.setVec3("viewPos"            , camera.Position   ); 
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+
         #pragma endregion
-        /*--------------------------DRAWING----------------------------------*/  #pragma region
+        /*---------------------DRAWING------------------------------*/  #pragma region
 
         glBindVertexArray(cubeVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //(pre)Drawing commands
@@ -271,33 +281,25 @@ int main()
                         glm::mat3 normal = glm::mat3(glm::transpose(glm::inverse(model)));
 
                         cubeShader.setMat4("model"    , model);
-                        cubeShader.setMat3("normal"   , normal); 
+                        cubeShader.setMat3("normal"   , normal);
 
-                        cubeShader.setVec3("material.ambient"   , 1.0f, 0.5f, 0.31f );
-                        cubeShader.setVec3("material.diffuse"   , 1.0f, 0.5f, 0.31f );
-                        cubeShader.setVec3("material.specular"  , 0.5f, 0.5f, 0.5f  );
                         cubeShader.setFloat("material.shininess", 64.0f             );
                         cubeShader.setVec3("light.ambient"      ,  0.2f, 0.2f, 0.2f );
                         cubeShader.setVec3("light.diffuse"      ,  0.5f, 0.5f, 0.5f );
-                        cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  ); 
+                        cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
+
                         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
                     }
                     else
                     {
-                        //model = glm::rotate(model, 1.0f * gl_time, glm::vec3(1.0f, 0.3f, 0.5f));
-                        
                         model = glm::scale(model, glm::vec3(0.8, 0.8, 0.8));
                         glm::mat3 normal = glm::mat3(glm::transpose(glm::inverse(model)));
                         cubeShader.setMat4("model"     , model);
                         cubeShader.setMat3("normal"    , normal); 
-                        
-                        cubeShader.setVec3("material.ambient"   , 0.05375f, 0.05f, 0.06625f);
-                        cubeShader.setVec3("material.diffuse"   , 0.18275f, 0.17f, 0.22525f);
-                        cubeShader.setVec3("material.specular"  , 0.332741f, 0.328634f, 0.346435f);
-                        cubeShader.setFloat("material.shininess", 16.0f             );
-                        cubeShader.setVec3("light.ambient"      ,  1.0f, 1.0f, 1.0f );
-                        cubeShader.setVec3("light.diffuse"      ,  1.0f, 1.0f, 1.0f );
-                        cubeShader.setVec3("light.specular"     ,  1.0f, 1.0f, 1.0f ); 
+                        cubeShader.setFloat("material.shininess", 16.0f);
+                        cubeShader.setVec3("light.ambient"      ,  0.2f, 0.2f, 0.2f );
+                        cubeShader.setVec3("light.diffuse"      ,  0.5f, 0.5f, 0.5f );
+                        cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
                         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
                     }
                 }
@@ -307,7 +309,7 @@ int main()
 
         
         // Light
-        /*--------------------------PRE-UNIFORM------------------------------*/ #pragma region
+        /*---------------------PRE-UNIFORM--------------------------*/ #pragma region
         lightShader.use();
 
         glm::vec3 position(0.0f, 0.0f, 0.0f);
@@ -315,9 +317,9 @@ int main()
 
         // Light  rotating around cubes 
         float radius = 6.0f;
-        position.x = cosf(gl_time * 2.3) * radius;
-        position.y = sinf(gl_time * 2.9) * radius + 10.0f;
-        position.z = sin(gl_time * 3.1) * radius;
+        position.x = cosf(gl_time * 1.1) * radius;
+        position.y = sinf(gl_time / 1.1) * radius + 10.0f;
+        position.z = sin(gl_time / 1.9) * radius;
         position = glm::vec3(model * glm::vec4(position, 1.0)); 
 
         model = glm::mat4(1.0f);
@@ -325,7 +327,7 @@ int main()
         model = glm::scale(model, glm::vec3(0.2f));
 
         #pragma endregion
-        /*--------------------------UNIFORMS---------------------------------*/  #pragma region
+        /*---------------------UNIFORMS-----------------------------*/  #pragma region
         lightShader.setMat4("model"       , model);
         lightShader.setMat4("projection"  , projection);
         lightShader.setMat4("view"        , view);
@@ -333,7 +335,7 @@ int main()
         
         
         #pragma endregion
-        /*--------------------------DRAWING----------------------------------*/  #pragma region
+        /*---------------------DRAWING------------------------------*/  #pragma region
         glBindVertexArray(lightVAO);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         
@@ -341,25 +343,25 @@ int main()
         
 
         // Plane
-        /*--------------------------PRE-UNIFORM------------------------------*/ #pragma region
+        /*----------------------PRE-UNIFORM-------------------------*/ #pragma region
         planeShader.use();
 
         model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(50.0f));
 
         #pragma endregion
-        /*--------------------------UNIFORMS---------------------------------*/ #pragma region
+        /*----------------------UNIFORMS----------------------------*/ #pragma region
         planeShader.setMat4("model"       , model);
         planeShader.setMat4("projection"  , projection);
         planeShader.setMat4("view"        , view);
         #pragma endregion
-        /*--------------------------DRAWING----------------------------------*/ #pragma region
+        /*----------------------DRAWING-----------------------------*/ #pragma region
         glBindVertexArray(planeVAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         #pragma endregion
         
 
-        /*--------------------------UNIFORM_UNIFORMS-------------------------*/ #pragma region
+        /*----------------------UNIFORM_UNIFORMS--------------------*/ #pragma region
         cubeShader.use();
         cubeShader.setVec3("light.position", position);
 
@@ -377,7 +379,7 @@ int main()
         glfwPollEvents();
     }
     
-    /*--------------------------CLEANING_UP---------------------------*/#pragma region
+    /*-----------------------CLEANING_UP---------------------------*/#pragma region
     // Cube
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVBO);
@@ -398,8 +400,8 @@ int main()
     #pragma endregion
 }
 
-/*--------------------------FUNCTIONS------------------------------*/ #pragma region
-// process inputs
+/*---------------------------FUNCTIONS-----------------------------*/ #pragma region
+// Process inputs
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) 
@@ -421,7 +423,7 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(UP, deltaTime);
 }
 
-// resizing of window
+// Resizing of window
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions note that width and
@@ -429,7 +431,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-// movement with mouse
+// Movement with mouse
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -451,10 +453,62 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// zoom using scrollwheel
+// Zoom using scrollwheel
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+// Load textures. Todo: Add settings as parameters
+unsigned int loadTexture(char const* path) {
+    // Get texture ID
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    // Load texture data
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    
+    // If data is loaded
+    if (data)
+    {
+        // What type is texture data
+        GLenum format;
+        if (nrComponents == 1)
+        {
+            format = GL_RED;
+        }
+        else if (nrComponents == 3)
+        {
+            format = GL_RGBA;
+        }
+        else if (nrComponents == 4) 
+        {
+            format = GL_RGBA;
+        }
+            
+        // Bind buffer to a textureID
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        // Load data to buffer
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // Configure texture buffer (WiP)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    else 
+    {
+        std::cout << "::ERROR:: TEXTURE NOT LOADED CORRECTLY" << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    return textureID;
 }
 
 #pragma endregion
