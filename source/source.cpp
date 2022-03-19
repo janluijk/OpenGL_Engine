@@ -313,16 +313,16 @@ int main()
         glm::vec3 position(0.0f, 0.0f, 0.0f);
         glm::vec4 lightColor = glm::vec4(1.0f);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, position);
-        model = glm::scale(model, glm::vec3(0.2f));
-
         // Light  rotating around cubes 
         float radius = 6.0f;
         position.x = cosf(gl_time * 2.3) * radius;
         position.y = sinf(gl_time * 2.9) * radius + 10.0f;
         position.z = sin(gl_time * 3.1) * radius;
         position = glm::vec3(model * glm::vec4(position, 1.0)); 
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, position);
+        model = glm::scale(model, glm::vec3(0.2f));
 
         #pragma endregion
         /*--------------------------UNIFORMS---------------------------------*/  #pragma region
