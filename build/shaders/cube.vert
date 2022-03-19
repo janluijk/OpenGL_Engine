@@ -2,9 +2,11 @@
 layout (location = 0) in vec3 vertexPos;
 layout (location = 1) in vec3 aNormalVec;
 
+// Out
 out vec3 normalVec;
 out vec3 fragPos;
 
+// Uniforms
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;

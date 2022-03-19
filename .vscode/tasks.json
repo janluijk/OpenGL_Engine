@@ -14,11 +14,16 @@
 				"${workspaceFolder}/source/std_image.c",
 				"-I",
 				"${workspaceFolder}/include",
-				
+				"-L",
+				"${workspaceFolder}/lib", 
 				"-l",
 				"glfw3",
+				"-L",
+				"C:/msys64/mingw64/lib",
 				"-l",
 				"opengl32",
+				"-l",
+				"gdi32"
 			],
 			"options": {
 				"cwd": "C:/msys64/mingw64/bin"

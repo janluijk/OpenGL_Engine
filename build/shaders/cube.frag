@@ -1,12 +1,10 @@
 #version 330 core
-
-in vec3 normalVec;
-in vec3 fragPos;
-  
 out vec4 FragColor;
+in vec3 normalVec;
+in vec3 fragPos;  
 
+// Uniforms
 uniform vec3 viewPos;
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -27,6 +25,7 @@ struct Light {
 };
 uniform Light light;
 
+// Main
 void main()
 {
     // Ambient  

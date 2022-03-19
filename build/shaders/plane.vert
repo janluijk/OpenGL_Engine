@@ -3,6 +3,7 @@ layout (location = 0) in vec3 position;
 
 out vec4 worldPos;
 
+// Uniforms
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
