@@ -8,7 +8,7 @@ struct Material {
 };
 struct Light {
     vec3 position;
-    vec3 color;
+    vec4 color;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -36,7 +36,7 @@ void main()
 {
 
     // Distance light and cube
-    float lightDistance = length(light.position - fWorldPos); // lenght of vector from frag to light
+    float lightDistance = length(light.position - fWorldPos.xyz); // lenght of vector from frag to light
     float attenuation = 1.0 / (light.c0 + lightDistance * (light.c1 + light.c2 * lightDistance)); // Brightness decreases by distance squared
 
     // Ambient  
