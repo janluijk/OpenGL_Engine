@@ -46,6 +46,7 @@ bool firstMouse = true;
 glm::vec3 position;
 glm::vec4 lightColor = glm::vec4(0.0);
 bool movingLight = false;
+int drawMode = GL_TRIANGLES;
 float timeSpeed = 0.0f;
 
 
@@ -309,7 +310,7 @@ int main()
                         cubeShader.setVec3("light.diffuse"      , 0.5f, 0.5f, 0.5f );
                         cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
 
-                        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+                        glDrawElements(drawMode, 36, GL_UNSIGNED_INT, 0);
                     }
                     else if((x + y + z) % 2 == 0)
                     {
@@ -321,7 +322,7 @@ int main()
                         cubeShader.setVec3("light.ambient"      , 0.2f, 0.2f, 0.2f );
                         cubeShader.setVec3("light.diffuse"      , 0.5f, 0.5f, 0.5f );
                         cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
-                        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+                        glDrawElements(drawMode, 36, GL_UNSIGNED_INT, 0);
                     }
                 }
             }
@@ -395,7 +396,7 @@ int main()
         #pragma endregion
         /*----------------------DRAWING-----------------------------*/ #pragma region
         glBindVertexArray(planeVAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(drawMode, 6, GL_UNSIGNED_INT, 0);
         #pragma endregion
         
 
@@ -507,6 +508,12 @@ void processInput(GLFWwindow *window)
     }
     if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
         lightColor.b -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        drawMode = GL_LINES;
+    }
+    else {
+        drawMode = GL_TRIANGLES;
     }
 }
 
