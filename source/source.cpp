@@ -41,6 +41,10 @@ bool firstMouse = true;
 
 #pragma endregion
 
+
+/* TESTING */
+glm::vec3 position;
+
 int main()
 {
     /*-----------------------INITIALIZING--------------------------*/ #pragma region
@@ -141,10 +145,10 @@ int main()
     };
     
     float plane_vertices[] = {
-       -1.0f, 0.0f, -1.0f,
-       -1.0f, 0.0f,  1.0f,
-        1.0f, 0.0f, -1.0f,
-        1.0f, 0.0f,  1.0f
+       -1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+       -1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f
     };
 
     unsigned int plane_indices[] = 
@@ -203,8 +207,10 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, planeEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_indices), plane_indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     #pragma endregion
     /*-----------------------TEXTURE_BINDING-----------------------*/ #pragma region
@@ -238,8 +244,7 @@ int main()
         #pragma endregion
         /*--------------------CALCULATION---------------------------*/  #pragma region
         float gl_time = (float)glfwGetTime();
-        
-        glm::mat4 model = glm::mat4(1.0f);
+
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 100.0f);
 
@@ -249,10 +254,17 @@ int main()
         // Cube
         /*---------------------PRE-UNIFORM--------------------------*/  #pragma region
         cubeShader.use();
+
+        // Initialize
+        glm::mat4 model = glm::mat4(1.0f);
+
+
         #pragma endregion       
         /*---------------------UNIFORMS-----------------------------*/  #pragma region
+        // VERTEX
         cubeShader.setMat4("projection"         , projection        );
         cubeShader.setMat4("view"               , view              );
+        // FRAGMENT
         cubeShader.setVec3("viewPos"            , camera.Position   ); 
 
         glActiveTexture(GL_TEXTURE0);
@@ -272,33 +284,34 @@ int main()
                 for(int z = -5; z < 5; z++)
                 {
                     glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, glm::vec3(x, y + 10, z));
+                    model = glm::translate(model, glm::vec3(x, y + 10.0f, z));
                     
-                    if ((x + y + z) % 3 == 0) 
+                    if ((x + y + z) % 15 == 0) 
                     {
                         model = glm::rotate(model, 1.0f * gl_time, glm::vec3(1.0f, 0.3f, 0.5f));
-                        model = glm::scale(model, glm::vec3(0.4, 0.4, 0.4));
-                        glm::mat3 normal = glm::mat3(glm::transpose(glm::inverse(model)));
+                        model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+                        glm::mat3 normalTransform = glm::mat3(glm::transpose(glm::inverse(model)));
 
+                        // VERTEX
                         cubeShader.setMat4("model"    , model);
-                        cubeShader.setMat3("normal"   , normal);
-
-                        cubeShader.setFloat("material.shininess", 64.0f             );
-                        cubeShader.setVec3("light.ambient"      ,  0.2f, 0.2f, 0.2f );
-                        cubeShader.setVec3("light.diffuse"      ,  0.5f, 0.5f, 0.5f );
+                        // FRAGMENT
+                        cubeShader.setMat3("normalTransform"   , normalTransform);
+                        cubeShader.setFloat("material.shininess", 64.0f);
+                        cubeShader.setVec3("light.ambient"      , 0.2f, 0.2f, 0.2f );
+                        cubeShader.setVec3("light.diffuse"      , 0.5f, 0.5f, 0.5f );
                         cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
 
                         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
                     }
-                    else
+                    else if((x + y + z) % 2 == 0)
                     {
-                        model = glm::scale(model, glm::vec3(0.8, 0.8, 0.8));
-                        glm::mat3 normal = glm::mat3(glm::transpose(glm::inverse(model)));
+                        model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+                        glm::mat3 normalTransform = glm::mat3(glm::transpose(glm::inverse(model)));
                         cubeShader.setMat4("model"     , model);
-                        cubeShader.setMat3("normal"    , normal); 
-                        cubeShader.setFloat("material.shininess", 16.0f);
-                        cubeShader.setVec3("light.ambient"      ,  0.2f, 0.2f, 0.2f );
-                        cubeShader.setVec3("light.diffuse"      ,  0.5f, 0.5f, 0.5f );
+                        cubeShader.setMat3("normalTransform"    , normalTransform); 
+                        cubeShader.setFloat("material.shininess", 64.0f);
+                        cubeShader.setVec3("light.ambient"      , 0.2f, 0.2f, 0.2f );
+                        cubeShader.setVec3("light.diffuse"      , 0.5f, 0.5f, 0.5f );
                         cubeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f  );
                         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
                     }
@@ -311,20 +324,21 @@ int main()
         // Light
         /*---------------------PRE-UNIFORM--------------------------*/ #pragma region
         lightShader.use();
-
-        glm::vec3 position(0.0f, 0.0f, 0.0f);
         glm::vec4 lightColor = glm::vec4(1.0f);
 
         // Light  rotating around cubes 
+        /*
         float radius = 6.0f;
-        position.x = cosf(gl_time * 1.1) * radius;
-        position.y = sinf(gl_time / 1.1) * radius + 10.0f;
-        position.z = sin(gl_time / 1.9) * radius;
-        position = glm::vec3(model * glm::vec4(position, 1.0)); 
-
+        position.x = cosf(gl_time / 11.0) * radius;
+        position.y = sinf(gl_time / 11.0) * radius + 10.0f;
+        position.z = sin(gl_time / 19.0) * radius; 
+        */
+        
         model = glm::mat4(1.0f);
         model = glm::translate(model, position);
         model = glm::scale(model, glm::vec3(0.2f));
+        
+        
 
         #pragma endregion
         /*---------------------UNIFORMS-----------------------------*/  #pragma region
@@ -347,13 +361,22 @@ int main()
         planeShader.use();
 
         model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(50.0f));
+        model = glm::scale(model, glm::vec3(100.0f));
+
+        glm::mat3 normalTransform = glm::mat3(glm::transpose(glm::inverse(model)));
 
         #pragma endregion
         /*----------------------UNIFORMS----------------------------*/ #pragma region
         planeShader.setMat4("model"       , model);
         planeShader.setMat4("projection"  , projection);
         planeShader.setMat4("view"        , view);
+
+        planeShader.setMat3("normalTransform"    , normalTransform);
+        planeShader.setVec3("viewPos"            , camera.Position   );
+        planeShader.setFloat("material.shininess", 16.0f);
+        planeShader.setVec3("light.ambient"      , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("light.diffuse"      , 0.85f, 0.85f, 0.85f);
+        planeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f);
         #pragma endregion
         /*----------------------DRAWING-----------------------------*/ #pragma region
         glBindVertexArray(planeVAO);
@@ -362,9 +385,12 @@ int main()
         
 
         /*----------------------UNIFORM_UNIFORMS--------------------*/ #pragma region
+        
         cubeShader.use();
         cubeShader.setVec3("light.position", position);
-
+        planeShader.use();
+        planeShader.setVec3("light.position", position);
+        
         #pragma endregion
 
         // Now lets swap the first buffer to the second buffer
@@ -421,6 +447,18 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         camera.ProcessKeyboard(UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_KP_0)) {
+        position = glm::vec3(7.0f, 10.0f, 0.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_1)) {
+        position = glm::vec3(0.0f, 10.0f, 7.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_2)) {
+        position = glm::vec3(-7.0f, 10.0f, 0.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_3)) {
+        position = glm::vec3(0.0f, 10.0f, -7.0f);
+    }
 }
 
 // Resizing of window
