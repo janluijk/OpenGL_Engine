@@ -44,6 +44,10 @@ bool firstMouse = true;
 
 /* TESTING */
 glm::vec3 position;
+glm::vec4 lightColor = glm::vec4(0.0);
+bool movingLight = false;
+float timeSpeed = 0.0f;
+
 
 int main()
 {
@@ -243,7 +247,7 @@ int main()
 
         #pragma endregion
         /*--------------------CALCULATION---------------------------*/  #pragma region
-        float gl_time = (float)glfwGetTime();
+        float gl_time = (float)glfwGetTime() * timeSpeed;
 
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 100.0f);
@@ -262,11 +266,15 @@ int main()
         #pragma endregion       
         /*---------------------UNIFORMS-----------------------------*/  #pragma region
         // VERTEX
-        cubeShader.setMat4("projection"         , projection        );
-        cubeShader.setMat4("view"               , view              );
+        cubeShader.setMat4("projection"         , projection);
+        cubeShader.setMat4("view"               , view);
         // FRAGMENT
-        cubeShader.setVec3("viewPos"            , camera.Position   ); 
+        cubeShader.setVec3("viewPos"            , camera.Position);  
+        cubeShader.setFloat("light.c0"                , 1.00);
+        cubeShader.setFloat("light.c1"                , 0.01);
+        cubeShader.setFloat("light.c2"                , 0.1);
 
+        // TEXTURES
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
@@ -288,7 +296,7 @@ int main()
                     
                     if ((x + y + z) % 15 == 0) 
                     {
-                        model = glm::rotate(model, 1.0f * gl_time, glm::vec3(1.0f, 0.3f, 0.5f));
+                        model = glm::rotate(model, 0.05f * gl_time, glm::vec3(1.0f, 0.3f, 0.5f));
                         model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
                         glm::mat3 normalTransform = glm::mat3(glm::transpose(glm::inverse(model)));
 
@@ -324,15 +332,18 @@ int main()
         // Light
         /*---------------------PRE-UNIFORM--------------------------*/ #pragma region
         lightShader.use();
-        glm::vec4 lightColor = glm::vec4(1.0f);
 
         // Light  rotating around cubes 
-        /*
-        float radius = 6.0f;
-        position.x = cosf(gl_time / 11.0) * radius;
-        position.y = sinf(gl_time / 11.0) * radius + 10.0f;
-        position.z = sin(gl_time / 19.0) * radius; 
-        */
+        
+        if(movingLight == true) 
+        {
+            float radius = 6.0f;
+            position.x = cosf(gl_time / 11.0) * radius;
+            position.y = sinf(gl_time / 13.0) * radius + 10.0f;
+            position.z = sin(gl_time / 17.0) * radius; 
+        }
+        
+        
         
         model = glm::mat4(1.0f);
         model = glm::translate(model, position);
@@ -373,10 +384,14 @@ int main()
 
         planeShader.setMat3("normalTransform"    , normalTransform);
         planeShader.setVec3("viewPos"            , camera.Position   );
-        planeShader.setFloat("material.shininess", 16.0f);
-        planeShader.setVec3("light.ambient"      , 0.05f, 0.05f, 0.05f);
-        planeShader.setVec3("light.diffuse"      , 0.85f, 0.85f, 0.85f);
+        planeShader.setFloat("material.shininess", 32.0f);
+        planeShader.setVec3("light.ambient"      , 0.2f, 0.2f, 0.2f);
+        planeShader.setVec3("light.diffuse"      , 0.55f, 0.55f, 0.55f);
         planeShader.setVec3("light.specular"     , 1.0f, 1.0f, 1.0f);
+        planeShader.setFloat("light.c0"                , 1.00f);
+        planeShader.setFloat("light.c1"                , 0.001f);
+        planeShader.setFloat("light.c2"                , 0.5f);
+
         #pragma endregion
         /*----------------------DRAWING-----------------------------*/ #pragma region
         glBindVertexArray(planeVAO);
@@ -388,8 +403,11 @@ int main()
         
         cubeShader.use();
         cubeShader.setVec3("light.position", position);
+        cubeShader.setVec4("light.color", lightColor);
+
         planeShader.use();
         planeShader.setVec3("light.position", position);
+        planeShader.setVec4("light.color", lightColor);
         
         #pragma endregion
 
@@ -458,6 +476,37 @@ void processInput(GLFWwindow *window)
     }
     if (glfwGetKey(window, GLFW_KEY_KP_3)) {
         position = glm::vec3(0.0f, 10.0f, -7.0f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_5)) {
+        movingLight = !movingLight;
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS) {
+        timeSpeed += 0.2f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS) {
+        timeSpeed -= 0.2f;
+    }
+    if(timeSpeed < 0.1f) 
+    {
+        timeSpeed = 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS) {
+        lightColor.r += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS) {
+        lightColor.g += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS) {
+        lightColor.b += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
+        lightColor.r -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+        lightColor.g -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+        lightColor.b -= 0.01f;
     }
 }
 

@@ -8,9 +8,15 @@ struct Material {
 };
 struct Light {
     vec3 position;
+    vec3 color;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    // Attenuation constants
+    float c0;
+    float c1;
+    float c2;
 };
 
 /* CODE */
@@ -28,6 +34,11 @@ uniform Light light;
 // Main
 void main()
 {
+
+    // Distance light and cube
+    float lightDistance = length(light.position - fWorldPos); // lenght of vector from frag to light
+    float attenuation = 1.0 / (light.c0 + lightDistance * (light.c1 + light.c2 * lightDistance)); // Brightness decreases by distance squared
+
     // Ambient  
     vec3 ambientVec     = light.ambient * texture(material.diffuse, fTexCoords).rgb;
 
@@ -42,6 +53,6 @@ void main()
     float specular      = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specularVec    = specular * vec3(texture(material.specular, fTexCoords)) * light.specular;
 
-    vec3 result         = specularVec + ambientVec + diffuseVec;
+    vec3 result         = light.color.rgb * attenuation * (specularVec + ambientVec + diffuseVec);
     FragColor           = vec4(result, 1.0);
 }

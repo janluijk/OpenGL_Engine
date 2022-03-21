@@ -10,9 +10,15 @@ uniform Material material;
 
 struct Light {
     vec3 position;
+    vec4 color;
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float c0;
+    float c1;
+    float c2;
 };
 uniform Light light;
 
@@ -26,10 +32,12 @@ in vec3 fNormalVec;
 // Uniforms
 uniform vec3 viewPos;
 
-
-
 void main()
 {
+     // Distance light and cube
+    float lightDistance = length(light.position - fWorldPos.xyz); // lenght of vector from frag to light
+    float attenuation = 1.0 / (light.c0 + lightDistance * (light.c1 + light.c2 * lightDistance)); // Brightness decreases by distance squared
+
     vec4 planeColor;
     int isEven = int(fWorldPos.x) + int(fWorldPos.z);
     if(isEven % 2 == 0)
@@ -55,6 +63,6 @@ void main()
     float specular      = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specularVec    = specular * light.specular;
 
-    vec3 result         = (specularVec + ambientVec + diffuseVec) * planeColor;
+    vec3 result         = (specularVec + ambientVec + diffuseVec) * planeColor.xyz * attenuation * light.color.rgb;
     FragColor           = vec4(result, 1.0);
 }       
