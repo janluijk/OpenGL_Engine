@@ -5,7 +5,7 @@ layout (location = 2) in vec2 vTexCoords;
 
 // Out
 out vec3 fNormalVec;
-out vec4 fWorldPos;
+out vec3 fWorldPos;
 out vec2 fTexCoords;
 
 // Uniforms
@@ -16,8 +16,8 @@ uniform mat3 normalTransform;
 
 void main()
 {
-    fWorldPos = model * vec4(vPos, 1.0);
+    fWorldPos = vec3(model * vec4(vPos, 1.0));
     fTexCoords = vTexCoords;
     fNormalVec = normalize(normalTransform * vNormalVec);
-    gl_Position = projection * view * fWorldPos;
+    gl_Position = projection * view * vec4(fWorldPos, 1.0);
 }

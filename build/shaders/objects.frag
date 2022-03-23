@@ -4,6 +4,8 @@ out vec4 FragColor;
 
 // STRUCTS
 struct Material {
+    sampler2D diffuse;
+    sampler2D specular;
     float shininess;
 };
 
@@ -39,7 +41,7 @@ uniform Material material;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 //uniform DirectionalLight directionalLight;
 
-vec3 calcPointLight(PointLight pointlight, vec3 fragPos, vec3 fNormalVec, vec3 viewDir);
+vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 fNormalVec, vec3 viewDir);
 
 // Main
 void main()
@@ -56,31 +58,28 @@ void main()
 }
 
 
-vec3 calcPointLight(PointLight pointlight, vec3 fragPos, vec3 fNormalVec, vec3 viewDir) 
-{   
-    
-    vec3 planeColor = vec3(0.8, 0.8, 0.8);
-    if ((int(fragPos.x) + int(fragPos.z)) % 2 == 0) {
-        planeColor = vec3(0.5, 0.2, 0.2);
-    }
+vec3 calcPointLight(PointLight light, vec3 fragPos, vec3 fNormalVec, vec3 viewDir) 
+{
     // Distance light and cube
-    float lightDistance = length(pointlight.position - fWorldPos);
-    float attenuation = 1.0 / pointlight.ambient.r * lightDistance;
-    if(pointlight.quadratic == 0.0) {
-        attenuation = 1.0 / (lightDistance * lightDistance);
+    float lightDistance = length(light.position - fWorldPos);
+    float attenuation;
+    if(light.quadratic == 0.03) {
+        attenuation = 1.0 / (light.quadratic * lightDistance * lightDistance);
     }
+    
+
 
     // Diffuse
-    vec3 rayDir         = normalize(pointlight.position - fragPos); // A - B means B -> A 
+    vec3 rayDir         = normalize(light.position - fragPos); // A - B means B -> A 
     float diffuse       = max(dot(fNormalVec, rayDir), 0.0);
     
     // Specular 
     vec3 reflectDir     = reflect(-rayDir, fNormalVec); // We want from A -> B
     float specular      = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     
-    vec3 ambientVec     = attenuation * planeColor * pointlight.ambient;
-    vec3 diffuseVec     = attenuation * planeColor * diffuse * pointlight.diffuse;
-    vec3 specularVec    = specular * pointlight.specular;
-    vec3 result = (ambientVec + diffuseVec + specularVec) * pointlight.color.rgb;
+    vec3 ambientVec     = attenuation * vec3(texture(material.diffuse, fTexCoords)) * light.ambient;
+    vec3 diffuseVec     = attenuation * vec3(texture(material.diffuse, fTexCoords)) * diffuse * light.diffuse;
+    vec3 specularVec    = attenuation * vec3(texture(material.specular, fTexCoords)) * specular * light.specular;
+    vec3 result = (ambientVec + diffuseVec + specularVec) * light.color.rgb;
     return result;
 }
