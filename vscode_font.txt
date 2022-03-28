@@ -1,0 +1,43 @@
+{
+    "C_Cpp.default.compilerPath": "",
+    "security.workspace.trust.untrustedFiles": "open",
+    "workbench.colorTheme": "Abyss",
+    "foreground": "#FFFFFF",
+    "workbench.colorCustomizations": {
+        "editor.foreground": "#fff"
+    },
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": [
+                    "comment.block",
+                ],
+                "settings": { 
+                    "foreground": "#f9f",
+                    "fontStyle": "bold italic",
+                },
+            },
+            {
+                "scope": [
+                    "meta.body.function.definition",
+                ],
+                "settings": { 
+                    "foreground": "#888",
+                },
+            },
+            {
+                "scope": [
+                    "punctuation.section.arguments",
+                    "punctuation.section.block",
+                    "punctuation.terminator" 
+                ],
+                "settings": { 
+                    "foreground": "#FF0",
+                    "fontStyle": "bold",
+                },
+            },
+        ],
+    },
+    "files.autoSave": "afterDelay",
+}
+

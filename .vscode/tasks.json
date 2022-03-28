@@ -16,6 +16,7 @@
 				"${workspaceFolder}/include",
 				"-L",
 				"${workspaceFolder}/lib", 
+				"--static",
 				"-l",
 				"glfw3",
 				"-L",

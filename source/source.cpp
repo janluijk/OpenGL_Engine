@@ -18,6 +18,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(char const* path);
+unsigned int optionList(int option);
 
 /*--------------------------GLOBAL_VARIABLES-----------------------*/#pragma region
 // Window and viewport sizes
@@ -48,6 +49,27 @@ glm::vec4 lightColor = glm::vec4(0.0);
 bool movingLight = false;
 int drawMode = GL_TRIANGLES;
 float timeSpeed = 0.0f;
+unsigned int cycleOptions, nr_options, optionResult;
+
+struct Movement {
+    float x;
+    float y;
+    float z;
+};
+
+struct Color {
+    float r;
+    float g;
+    float b;
+};
+
+struct LightCube
+{
+    Movement movement;
+    Color color;
+}; LightCube lightCube[3];
+
+
 
 
 int main()
@@ -257,11 +279,11 @@ int main()
         {
             float radius = 6.0f;
             float a = cosf(gl_time / 11.0) * radius;
-            float b = sinf(gl_time / 13.0) * radius + 10.0f;
+            float b = sinf(gl_time / 13.0) * radius;
             float c = sin(gl_time / 17.0) * radius;
-            lightPositions[0] = glm::vec3(a, b, c);
-            lightPositions[1] = glm::vec3(a, b, -c);
-            lightPositions[2] = glm::vec3(b, a, c);
+            lightPositions[0] = glm::vec3(a, b + 10.0f, c);
+            lightPositions[1] = glm::vec3(-a, b + 10.0f, -c);
+            lightPositions[2] = glm::vec3(b, a + 10.0f, c);
         }
 
         glm::mat4 view = camera.GetViewMatrix();
@@ -289,37 +311,44 @@ int main()
         //objectShader.setMat3("normalTransform"      , normalTransform);
 
         // Material properties
-        objectShader.setFloat("material.shininess", 64.0f);
+        objectShader.setFloat("material.shininess", 4.0f);
 
         // Light properties
-        objectShader.setVec3("viewPos"              , camera.Position);
-        objectShader.setVec3("pointLights[0].position"       , lightPositions[0]);
-        objectShader.setVec4("pointLights[0].color"          , lightColor);
-        objectShader.setVec3("pointLights[0].ambient"        , 0.05f, 0.05f, 0.05f);
-        objectShader.setVec3("pointLights[0].diffuse"        , 0.8f, 0.8f, 0.8f);
-        objectShader.setVec3("pointLights[0].specular"       , 1.0f, 1.0f, 1.0f);
-        objectShader.setFloat("pointLights[0].constant"      , 1.00f);
-        objectShader.setFloat("pointLights[0].linear"        , 0.110f);
-        objectShader.setFloat("pointLights[0].quadratic"     , 0.03f);
+        objectShader.setVec3("viewPos"                      , camera.Position);
+
+        objectShader.setVec3("directionalLight.direction"   , -0.2f, -1.0f, -0.3f);
+        objectShader.setVec4("directionalLight.color"       , 0.8f, 0.3f, 0.7f, 1.0f);
+        objectShader.setVec3("directionalLight.ambient"     , 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("directionalLight.diffuse"     , 0.4f, 0.4f, 0.4f);
+        objectShader.setVec3("directionalLight.specular"    , 0.5f, 0.5f, 0.5f);
+
+        objectShader.setVec3("pointLights[0].position"      , lightPositions[0]);
+        objectShader.setVec4("pointLights[0].color"         , lightColor);
+        objectShader.setVec3("pointLights[0].ambient"       , 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("pointLights[0].diffuse"       , 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("pointLights[0].specular"      , 1.0f, 1.0f, 1.0f);
+        objectShader.setFloat("pointLights[0].constant"     , 1.00f);
+        objectShader.setFloat("pointLights[0].linear"       , 0.195f);
+        objectShader.setFloat("pointLights[0].quadratic"    , 0.035f);
         
 
-        objectShader.setVec3("pointLights[1].position"       , lightPositions[1]);
-        objectShader.setVec4("pointLights[1].color"          , lightColor);
-        objectShader.setVec3("pointLights[1].ambient"        , 0.05f, 0.05f, 0.05f);
-        objectShader.setVec3("pointLights[1].diffuse"        , 0.8f, 0.8f, 0.8f);
-        objectShader.setVec3("pointLights[1].specular"       , 1.0f, 1.0f, 1.0f);
-        objectShader.setFloat("pointLights[1].constant"      , 1.00f);
-        objectShader.setFloat("pointLights[1].linear"        , 0.11f);
-        objectShader.setFloat("pointLights[1].quadratic"     , 0.03f);
+        objectShader.setVec3("pointLights[1].position"      , lightPositions[1]);
+        objectShader.setVec4("pointLights[1].color"         , lightColor);
+        objectShader.setVec3("pointLights[1].ambient"       , 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("pointLights[1].diffuse"       , 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("pointLights[1].specular"      , 1.0f, 1.0f, 1.0f);
+        objectShader.setFloat("pointLights[1].constant"     , 1.00f);
+        objectShader.setFloat("pointLights[1].linear"       , 0.195f);
+        objectShader.setFloat("pointLights[1].quadratic"    , 0.035f);
 
-        objectShader.setVec3("pointLights[2].position"       , lightPositions[2]);
-        objectShader.setVec4("pointLights[2].color"          , lightColor);
-        objectShader.setVec3("pointLights[2].ambient"        , 0.05f, 0.05f, 0.05f);
-        objectShader.setVec3("pointLights[2].diffuse"        , 0.8f, 0.8f, 0.8f);
-        objectShader.setVec3("pointLights[2].specular"       , 1.0f, 1.0f, 1.0f);
-        objectShader.setFloat("pointLights[2].constant"      , 1.00f);
-        objectShader.setFloat("pointLights[2].linear"        , 0.11f);
-        objectShader.setFloat("pointLights[2].quadratic"     , 0.03f);
+        objectShader.setVec3("pointLights[2].position"      , lightPositions[2]);
+        objectShader.setVec4("pointLights[2].color"         , lightColor);
+        objectShader.setVec3("pointLights[2].ambient"       , 0.05f, 0.05f, 0.05f);
+        objectShader.setVec3("pointLights[2].diffuse"       , 1.0f, 1.0f, 1.0f);
+        objectShader.setVec3("pointLights[2].specular"      , 1.0f, 1.0f, 1.0f);
+        objectShader.setFloat("pointLights[2].constant"     , 1.00f);
+        objectShader.setFloat("pointLights[2].linear"       , 0.195f);
+        objectShader.setFloat("pointLights[2].quadratic"    , 0.035f);
 
         // TEXTURES
         glActiveTexture(GL_TEXTURE0);
@@ -415,38 +444,46 @@ int main()
         planeShader.setMat3("normalTransform"      , normalTransform);
 
         // Material properties
-        planeShader.setFloat("material.shininess", 64.0f);
-        planeShader.setVec3("material.ambient"        , 0.2f, 0.2f, 0.2f);
-        planeShader.setVec3("material.diffuse"        , 0.2f, 0.2f, 0.2f);
+        planeShader.setFloat("material.shininess"   , 128.0f);
+        planeShader.setVec3("material.ambient"      , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("material.diffuse"      , 0.05f, 0.05f, 0.05f);
 
-        // Light properties
-        planeShader.setVec3("viewPos"              , camera.Position);
+        // LIGHT PROPERTIES
+        // Directional light
+        planeShader.setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);
+        planeShader.setVec4("directionalLight.color"    , 0.4f, 0.15f, 0.35f, 1.0f);
+        planeShader.setVec3("directionalLight.ambient"  , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("directionalLight.diffuse"  , 0.4f, 0.4f, 0.4f);
+        planeShader.setVec3("directionalLight.specular" , 0.5f, 0.5f, 0.5f);
+
+        // Point light
+        planeShader.setVec3("viewPos"                       , camera.Position);
         planeShader.setVec3("pointLights[0].position"       , lightPositions[0]);
         planeShader.setVec4("pointLights[0].color"          , lightColor);
-        planeShader.setVec3("pointLights[0].ambient"        , 0.2f, 0.2f, 0.2f);
-        planeShader.setVec3("pointLights[0].diffuse"        , 0.5f, 0.5f, 0.5f);
+        planeShader.setVec3("pointLights[0].ambient"        , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("pointLights[0].diffuse"        , 0.4f, 0.4f, 0.4f);
         planeShader.setVec3("pointLights[0].specular"       , 1.0f, 1.0f, 1.0f);
-        planeShader.setFloat("pointLights[0].constant"            , 1.00f);
-        planeShader.setFloat("pointLights[0].linear"            , 0.10f);
-        planeShader.setFloat("pointLights[0].quadratic"            , 0.01f);
+        planeShader.setFloat("pointLights[0].constant"      , 1.000f);
+        planeShader.setFloat("pointLights[0].linear"        , 0.22f);
+        planeShader.setFloat("pointLights[0].quadratic"     , 0.06f);
 
         planeShader.setVec3("pointLights[1].position"       , lightPositions[1]);
         planeShader.setVec4("pointLights[1].color"          , lightColor);
-        planeShader.setVec3("pointLights[1].ambient"        , 0.2f, 0.2f, 0.2f);
-        planeShader.setVec3("pointLights[1].diffuse"        , 0.5f, 0.5f, 0.5f);
+        planeShader.setVec3("pointLights[1].ambient"        , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("pointLights[1].diffuse"        , 0.4f, 0.4f, 0.4f);
         planeShader.setVec3("pointLights[1].specular"       , 1.0f, 1.0f, 1.0f);
-        planeShader.setFloat("pointLights[1].constant"            , 1.00f);
-        planeShader.setFloat("pointLights[1].linear"            , 0.10f);
-        planeShader.setFloat("pointLights[1].quadratic"            , 0.01f);
+        planeShader.setFloat("pointLights[1].constant"      , 1.000f);
+        planeShader.setFloat("pointLights[1].linear"        , 0.22f);
+        planeShader.setFloat("pointLights[1].quadratic"     , 0.06f);
 
         planeShader.setVec3("pointLights[2].position"       , lightPositions[2]);
         planeShader.setVec4("pointLights[2].color"          , lightColor);
-        planeShader.setVec3("pointLights[2].ambient"        , 0.2f, 0.2f, 0.2f);
-        planeShader.setVec3("pointLights[2].diffuse"        , 0.5f, 0.5f, 0.5f);
+        planeShader.setVec3("pointLights[2].ambient"        , 0.05f, 0.05f, 0.05f);
+        planeShader.setVec3("pointLights[2].diffuse"        , 0.4f, 0.4f, 0.4f);
         planeShader.setVec3("pointLights[2].specular"       , 1.0f, 1.0f, 1.0f);
-        planeShader.setFloat("pointLights[2].constant"            , 1.00f);
-        planeShader.setFloat("pointLights[2].linear"            , 0.10f);
-        planeShader.setFloat("pointLights[2].quadratic"            , 0.01f);
+        planeShader.setFloat("pointLights[2].constant"      , 1.000f);
+        planeShader.setFloat("pointLights[2].linear"        , 0.22f);
+        planeShader.setFloat("pointLights[2].quadratic"     , 0.06f);
 
         // TEXTURES
         // glActiveTexture(GL_TEXTURE0);
@@ -456,11 +493,14 @@ int main()
 
         #pragma endregion
         /*----------------------DRAWING-----------------------------*/ #pragma region
+        
         glBindVertexArray(planeVAO);
         glDrawElements(drawMode, 6, GL_UNSIGNED_INT, 0);
+
         #pragma endregion
 
 
+        /*----------------------OTHER-------------------------------*/ #pragma region
         // Now lets swap the first buffer to the second buffer
         glfwSwapBuffers(window);
               
@@ -471,6 +511,7 @@ int main()
 
         // This function checks for events and activates the callback functions on events
         glfwPollEvents();
+        #pragma endregion
     }
     
     /*-----------------------CLEANING_UP---------------------------*/#pragma region
@@ -498,23 +539,48 @@ int main()
 // Process inputs
 void processInput(GLFWwindow *window)
 {
+    // Escape
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) 
     { 
         glfwSetWindowShouldClose(window, true);
     }
+
+
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE) {
+        nr_options = optionList(optionResult);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_RELEASE) {
+        optionList(-1);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+        cycleOptions += 1;
+        optionResult = cycleOptions % nr_options;
+        std::cout << ""
+    }
+    
     // Player movement
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         camera.ProcessKeyboard(DOWN, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         camera.ProcessKeyboard(UP, deltaTime);
+    }
+    
+
     if (glfwGetKey(window, GLFW_KEY_KP_0)) {
         position = glm::vec3(7.0f, 10.0f, 0.0f);
     }
@@ -678,4 +744,13 @@ unsigned int loadTexture(char const* path) {
     return textureID;
 }
 
+unsigned int optionList(int option) {
+    
+    if(option == -1) {
+        
+    }
+    else{
+        int lastOption = option;
+    }
+}
 #pragma endregion
