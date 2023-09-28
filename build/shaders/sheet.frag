@@ -3,10 +3,13 @@ out vec4 FragColor;
 
 uniform ivec2 resolution;
 uniform float zoom;
-uniform vec2 position;
+uniform vec2 pos;
+uniform vec2 transpose;
+uniform vec2 pos_old;
+
 
 float function(in float x, in float y) {
-  return abs(x * x - y);
+  return abs(-1.0f * x * x - y);
 }
 
 void main() {
@@ -14,7 +17,7 @@ void main() {
   float linewidth = 0.001f * zoom;
 
   // define coordinates
-  vec2 coord = zoom * (2.0 * gl_FragCoord.xy - resolution) / resolution;
+  vec2 coord = (zoom * (2.0 * gl_FragCoord.xy - resolution) / resolution) + transpose;
 
   // draw gridlines
   vec2 intDist = abs(coord - round(coord));
@@ -32,13 +35,6 @@ void main() {
     color = vec3(1.0f);
   }
 
-  // draw position
-  if (distance(position, coord) < 0.05f) {
-    color = vec3(1.0f, 0.0f, 0.0f);
-  }
-
-
-
   // draw function 
   float score = function(coord.x, coord.y);
   if(score < 0.003 * zoom) {
@@ -47,5 +43,24 @@ void main() {
   else if(score < 0.005 * zoom) {
     color = vec3(0.63f, 0.59f, 0.15f);
   }
+
+  // draw line segment
+  vec2 dir = pos - pos_old;
+  float lDir = length(dir);
+  vec2 normDir = normalize(dir);
+  vec2 toPoint = coord - pos;
+  float lToPoint = length(toPoint);
+  if ((abs(dot(normDir, toPoint) - lToPoint) < 0.05f * zoom) && lToPoint < lDir) {
+    color = vec3(0.0f, 0.0f, 1.0f);
+  }
+
+
+
+
+  // draw pos
+  if (distance(pos, coord) < 0.05f) {
+    color = vec3(1.0f, 0.0f, 0.0f);
+  }
   FragColor = vec4(color, 1.0f);
+
 }

@@ -1,6 +1,7 @@
 // Standard classes
 #include <iostream>
 // Self-made classes
+#include <math.h>
 #include <shader.h>
 // Very useful classes
 #include <GLFW/glfw3.h>
@@ -10,6 +11,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h> // We want to create a function visualiser
+//
+//
+//
+// TODO:
+// Trace position using a line segment
+// Save line segments and create a trail
+//
+// Approximate dP better using second derivative
+// Simulate particle falling according to contraints
+// GLSL shader support
 
 // Functions declaration
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -24,21 +35,55 @@ const unsigned int SCR_HEIGHT = 1400;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-/* TESTING */
+//
+//
+//
+//
+//
+//
+//
+//
+//
 int drawMode = GL_TRIANGLES;
-float zoom = 1.0f;
+float zoom = 1.5f;
+glm::vec2 transpose = glm::vec2(0.0f, 0.0f);
+glm::dvec2 pos = glm::dvec2(0.0, 0.0);
+glm::dvec2 pos_old = glm::dvec2(0.0, 0.0);
 
-glm::vec2 position = glm::vec2(0.0f, 1.0f);
-glm::vec2 vel = glm::vec2(0.0f);
-float t = 0.0f;
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+double abso(double x) { return (x < 0.0) ? -1.0 * x : x; }
+double path(double x) { return -1.0 * x * x; }
 
 void function() {
-  t = t + deltaTime;
-  position.y = -0.5f * t * t + 10.0f;
-  if (position.y < 0.0f) {
-    t = 0.0f;
-  }
+  double x = pos.x, y = pos.y;
+  double dx = 0.1, dy = (path(x + dx) - y);
+  double dP = 0.01;
+
+  double dist_x = (dP * dx) / sqrt(dx * dx + dy * dy);
+
+  pos_old = pos;
+  pos.y = path(x + dist_x);
+  pos.x = x + dist_x;
 }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 int main() {
   // GLFW
@@ -69,7 +114,7 @@ int main() {
   }
 
   // Shader compiling
-  Shader sheetShader("shaders/sheet.vert", "shaders/sheet.frag");
+  Shader sheetShader("build/shaders/sheet.vert", "build/shaders/sheet.frag");
 
   // SHEET triangles
   float sheet_vertices[] = {
@@ -123,9 +168,11 @@ int main() {
 
     sheetShader.use();
     function();
-    sheetShader.setVec2("position", position);
+    sheetShader.setVec2("pos", pos);
+    sheetShader.setVec2("pos_old", pos_old);
     sheetShader.setiVec2("resolution", SCR_WIDTH, SCR_HEIGHT);
     sheetShader.setFloat("zoom", zoom);
+    sheetShader.setVec2("transpose", transpose);
 
     glBindVertexArray(sheetVAO);
     glDrawElements(drawMode, 6, GL_UNSIGNED_INT, 0);
@@ -157,10 +204,28 @@ void processInput(GLFWwindow *window) {
     glfwSetWindowShouldClose(window, true);
   }
   if (glfwGetKey(window, GLFW_KEY_EQUAL)) {
-    zoom = zoom * 1.01f;
+    zoom = zoom * 1.05f;
   }
   if (glfwGetKey(window, GLFW_KEY_MINUS)) {
-    zoom = zoom * 0.99f;
+    zoom = zoom * 0.95f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_A)) {
+    transpose.x -= 0.1f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_D)) {
+    transpose.x += 0.1f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_W)) {
+    transpose.y += 0.1f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_S)) {
+    transpose.y -= 0.1f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_K)) {
+    pos.x += 0.1f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_J)) {
+    pos.x -= 0.1f;
   }
   if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
     drawMode = GL_LINES;

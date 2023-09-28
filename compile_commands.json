@@ -1,0 +1,18 @@
+[
+ {
+  "directory": "/home/jan/Personal/Programming/CPP/OpenGL_Engine",
+  "arguments": [
+   "g++",
+   "-Wall",
+   "-o",
+   "build/source",
+   "source/source.cpp",
+   "source/glad.c",
+   "source/std_image.c",
+   "-I",
+   "include",
+   "-lglfw"
+  ],
+  "file": "source/std_image.c"
+ }
+]
