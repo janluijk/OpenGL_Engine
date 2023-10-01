@@ -1,31 +1,38 @@
+#include <glad/glad.h>
+
 // Standard classes
 #include <iostream>
-// Self-made classes
 #include <math.h>
-#include <shader.h>
-// Very useful classes
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
-// Not totally necessary
+#include <vector>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+// Very useful classes
+#include <GLFW/glfw3.h>
+// Not totally necessary
+#include <shader.h>
 #include <stb_image.h> // We want to create a function visualiser
-//
-//
-//
-// TODO:
+// Self-made classes
+#include <cube.h>
+#include <line.h>
+#include <sheet.h>
+
+// TODO :
 // Trace position using a line segment
 // Save line segments and create a trail
-//
+
 // Approximate dP better using second derivative
 // Simulate particle falling according to contraints
 // GLSL shader support
+
+// Everything object orientated
 
 // Functions declaration
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(char const *path);
+double abso(double x) { return (x < 0.0) ? -1.0 * x : x; }
 
 // Window and viewport sizes
 const unsigned int SCR_WIDTH = 2240;
@@ -43,29 +50,19 @@ float lastFrame = 0.0f;
 //
 //
 //
-//
+// Begin troep
 int drawMode = GL_TRIANGLES;
 float zoom = 1.5f;
 glm::vec2 transpose = glm::vec2(0.0f, 0.0f);
 glm::dvec2 pos = glm::dvec2(0.0, 0.0);
 glm::dvec2 pos_old = glm::dvec2(0.0, 0.0);
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-double abso(double x) { return (x < 0.0) ? -1.0 * x : x; }
 double path(double x) { return -1.0 * x * x; }
 
 void function() {
   double x = pos.x, y = pos.y;
-  double dx = 0.1, dy = (path(x + dx) - y);
+  double dx = 0.1;
+  double dy = (path(x + dx) - y);
   double dP = 0.01;
 
   double dist_x = (dP * dx) / sqrt(dx * dx + dy * dy);
@@ -113,49 +110,15 @@ int main() {
     return -1;
   }
 
-  // Shader compiling
-  Shader sheetShader("build/shaders/sheet.vert", "build/shaders/sheet.frag");
+  // Objects
+  Sheet sheet1;
+  sheet1.setZoom(1.0f);
+  sheet1.setResolution(SCR_WIDTH, SCR_HEIGHT);
+  sheet1.setTranspose(transpose);
 
-  // SHEET triangles
-  float sheet_vertices[] = {
-      -1.0f, -1.0f, 0.0f, //
-      1.0f,  -1.0f, 0.0f, //
-      -1.0f, 1.0f,  0.0f, //
-      1.0f,  1.0f,  0.0f, //
-  };
+  Line line1(glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f));
 
-  unsigned int sheet_indices[] = {
-      0, 1, 2, //
-      1, 2, 3, //
-  };
-
-  // SHEET buffers
-  unsigned int sheetVAO, sheetVBO, sheetEBO;
-
-  glGenVertexArrays(1, &sheetVAO);
-  glGenBuffers(1, &sheetVBO);
-  glGenBuffers(1, &sheetEBO);
-
-  glBindVertexArray(sheetVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, sheetVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(sheet_vertices), sheet_vertices,
-               GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sheetEBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(sheet_indices), sheet_indices,
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-
-  // TEXTURES
-  // const char path[] = {"textures/box.png"};
-  // unsigned int diffuseMap = loadTexture(path);
-  //
-  // const char path2[] = {"textures/box_specular.png"};
-  // unsigned int specularMap = loadTexture(path2);
-  //
-  //
-  //
-  //
+  Cube cube1(glm::vec2(0.0f, 0.0f), 2.0f, glm::vec3(0.0f, 1.0f, 1.0f));
 
   while (!glfwWindowShouldClose(window)) {
     // Calls the callback functions
@@ -166,16 +129,16 @@ int main() {
     // Clear buffers
     glClear(GL_COLOR_BUFFER_BIT);
 
-    sheetShader.use();
-    function();
-    sheetShader.setVec2("pos", pos);
-    sheetShader.setVec2("pos_old", pos_old);
-    sheetShader.setiVec2("resolution", SCR_WIDTH, SCR_HEIGHT);
-    sheetShader.setFloat("zoom", zoom);
-    sheetShader.setVec2("transpose", transpose);
+    // Objects
+    sheet1.setZoom(zoom);
+    sheet1.setTranspose(transpose);
 
-    glBindVertexArray(sheetVAO);
-    glDrawElements(drawMode, 6, GL_UNSIGNED_INT, 0);
+    cube1.setZoom(zoom);
+    cube1.setTranspose(transpose);
+
+    sheet1.draw();
+    line1.draw();
+    // cube1.draw();
 
     // Now lets swap the first buffer to the second buffer
     glfwSwapBuffers(window);
@@ -187,9 +150,6 @@ int main() {
 
     glfwPollEvents();
   }
-  glDeleteVertexArrays(1, &sheetVAO);
-  glDeleteBuffers(1, &sheetEBO);
-  glDeleteBuffers(1, &sheetVBO);
 
   // Termination
   glfwTerminate();
