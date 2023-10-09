@@ -1,2 +1,2 @@
 # OpenGL_Engine
-2D Engine created in OpenGL
+2D Engine using OpenGL for hardware acceleration.
